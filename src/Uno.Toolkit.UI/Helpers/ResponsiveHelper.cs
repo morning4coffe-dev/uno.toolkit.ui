@@ -22,6 +22,8 @@ internal interface IResponsiveCallback
 
 public partial class ResponsiveLayout : DependencyObject
 {
+	internal const string DefaultResourceKey = "DefaultResponsiveLayout";
+
 	#region DependencyProperty: Narrowest
 
 	public static DependencyProperty NarrowestProperty { get; } = DependencyProperty.Register(
@@ -106,7 +108,11 @@ public partial class ResponsiveLayout : DependencyObject
 		Wide = wide,
 		Widest = widest,
 	};
+
+	public override string ToString() => "[" + string.Join(", ", Narrowest, Narrow, Normal, Wide, Widest) + "]";
 }
+
+internal record ResolvedLayout<T>(string Layout, T Value);
 
 internal class ResponsiveHelper
 {
