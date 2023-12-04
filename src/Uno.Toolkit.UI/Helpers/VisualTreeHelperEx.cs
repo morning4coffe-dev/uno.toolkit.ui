@@ -198,6 +198,7 @@ namespace Uno.Toolkit.UI
 
 			static IEnumerable<string> GetDetails(object x)
 			{
+				#region Common Details: Layout (high priority)
 #if __IOS__
 				if (x is _View view && view.Superview is { })
 				{
@@ -221,16 +222,18 @@ namespace Uno.Toolkit.UI
 					//yield return $"Desired={FormatSize(uie.DesiredSize)}";
 					//yield return $"LAS={FormatSize(uie.LastAvailableSize)}";
 				}
+				if (TryGetDpValue<HorizontalAlignment>(x, "HorizontalContentAlignment", out var hca) |
+					TryGetDpValue<HorizontalAlignment>(x, "VerticalContentAlignment", out var vca))
+				{
+					yield return $"HVC={hca}/{vca}";
+				}
+				#endregion
+				#region WinUI Control Details
 				if (x is ScrollViewer sv)
 				{
 					yield return $"Offset={sv.HorizontalOffset:0.#},{sv.VerticalOffset:0.#}";
 					yield return $"Viewport={sv.ViewportWidth:0.#}x{sv.ViewportHeight:0.#}";
 					yield return $"Extent={sv.ExtentWidth:0.#}x{sv.ExtentHeight:0.#}";
-				}
-				if (TryGetDpValue<HorizontalAlignment>(x, "HorizontalContentAlignment", out var hca) |
-					TryGetDpValue<HorizontalAlignment>(x, "VerticalContentAlignment", out var vca))
-				{
-					yield return $"HVC={hca}/{vca}";
 				}
 				if (x is ListViewItem lvi)
 				{
@@ -245,12 +248,22 @@ namespace Uno.Toolkit.UI
 					if (shape.Fill is not null) yield return $"Fill={FormatBrush(shape.Fill)}";
 					if (shape.Stroke is not null) yield return $"Stroke={FormatBrush(shape.Stroke)}*{shape.StrokeThickness}px";
 				}
+				#endregion
+				#region Toolkit Control Details
+				if (x is ResponsiveView rv)
+				{
+					if (rv.ResolvedLayout is { } resolved) yield return $"Resolved={resolved.Layout}";
+					yield return $"Layout={rv.GetAppliedLayout()}";
+				}
+				#endregion
+				#region Common Details: Layout,Misc (low priority)
 				if (TryGetDpValue<CornerRadius>(x, "CornerRadius", out var cr)) yield return $"CornerRadius={FormatCornerRadius(cr)}";
 				if (TryGetDpValue<Thickness>(x, "Margin", out var margin)) yield return $"Margin={FormatThickness(margin)}";
 				if (TryGetDpValue<Thickness>(x, "Padding", out var padding)) yield return $"Padding={FormatThickness(padding)}";
 				if (TryGetDpValue<double>(x, "Opacity", out var opacity)) yield return $"Opacity={opacity}";
 				if (TryGetDpValue<Visibility>(x, "Visibility", out var visibility)) yield return $"Visibility={visibility}";
 				if (GetActiveVisualStates(x as Control) is { } states) yield return $"VisualStates={states}";
+				#endregion
 			}
 		}
 		private static string DebugVTNode(object x, Func<object, IEnumerable<string>> describeProperties)
